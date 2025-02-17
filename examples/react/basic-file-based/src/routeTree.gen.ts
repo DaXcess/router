@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
@@ -18,8 +20,14 @@ import { Route as IndexImport } from './routes/index'
 import { Route as PostsIndexImport } from './routes/posts.index'
 import { Route as PostsPostIdImport } from './routes/posts.$postId'
 import { Route as LayoutLayout2Import } from './routes/_layout/_layout-2'
+import { Route as SessionSessionIdLayoutImport } from './routes/session/$sessionId/_layout'
 import { Route as LayoutLayout2LayoutBImport } from './routes/_layout/_layout-2/layout-b'
 import { Route as LayoutLayout2LayoutAImport } from './routes/_layout/_layout-2/layout-a'
+import { Route as SessionSessionIdLayoutLogsImport } from './routes/session/$sessionId/_layout/logs'
+
+// Create Virtual Routes
+
+const SessionSessionIdImport = createFileRoute('/session/$sessionId')()
 
 // Create/Update Routes
 
@@ -46,6 +54,12 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const SessionSessionIdRoute = SessionSessionIdImport.update({
+  id: '/session/$sessionId',
+  path: '/session/$sessionId',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const PostsIndexRoute = PostsIndexImport.update({
   id: '/',
   path: '/',
@@ -63,6 +77,11 @@ const LayoutLayout2Route = LayoutLayout2Import.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const SessionSessionIdLayoutRoute = SessionSessionIdLayoutImport.update({
+  id: '/_layout',
+  getParentRoute: () => SessionSessionIdRoute,
+} as any)
+
 const LayoutLayout2LayoutBRoute = LayoutLayout2LayoutBImport.update({
   id: '/layout-b',
   path: '/layout-b',
@@ -74,6 +93,14 @@ const LayoutLayout2LayoutARoute = LayoutLayout2LayoutAImport.update({
   path: '/layout-a',
   getParentRoute: () => LayoutLayout2Route,
 } as any)
+
+const SessionSessionIdLayoutLogsRoute = SessionSessionIdLayoutLogsImport.update(
+  {
+    id: '/logs',
+    path: '/logs',
+    getParentRoute: () => SessionSessionIdLayoutRoute,
+  } as any,
+)
 
 // Populate the FileRoutesByPath interface
 
@@ -142,6 +169,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutLayout2LayoutBImport
       parentRoute: typeof LayoutLayout2Import
     }
+    '/session/$sessionId': {
+      id: '/session/$sessionId'
+      path: '/session/$sessionId'
+      fullPath: '/session/$sessionId'
+      preLoaderRoute: typeof SessionSessionIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/session/$sessionId/_layout': {
+      id: '/session/$sessionId/_layout'
+      path: '/session/$sessionId'
+      fullPath: '/session/$sessionId'
+      preLoaderRoute: typeof SessionSessionIdLayoutImport
+      parentRoute: typeof SessionSessionIdRoute
+    }
+    '/session/$sessionId/_layout/logs': {
+      id: '/session/$sessionId/_layout/logs'
+      path: '/logs'
+      fullPath: '/session/$sessionId/logs'
+      preLoaderRoute: typeof SessionSessionIdLayoutLogsImport
+      parentRoute: typeof SessionSessionIdLayoutImport
+    }
   }
 }
 
@@ -184,6 +232,31 @@ const PostsRouteChildren: PostsRouteChildren = {
 
 const PostsRouteWithChildren = PostsRoute._addFileChildren(PostsRouteChildren)
 
+interface SessionSessionIdLayoutRouteChildren {
+  SessionSessionIdLayoutLogsRoute: typeof SessionSessionIdLayoutLogsRoute
+}
+
+const SessionSessionIdLayoutRouteChildren: SessionSessionIdLayoutRouteChildren =
+  {
+    SessionSessionIdLayoutLogsRoute: SessionSessionIdLayoutLogsRoute,
+  }
+
+const SessionSessionIdLayoutRouteWithChildren =
+  SessionSessionIdLayoutRoute._addFileChildren(
+    SessionSessionIdLayoutRouteChildren,
+  )
+
+interface SessionSessionIdRouteChildren {
+  SessionSessionIdLayoutRoute: typeof SessionSessionIdLayoutRouteWithChildren
+}
+
+const SessionSessionIdRouteChildren: SessionSessionIdRouteChildren = {
+  SessionSessionIdLayoutRoute: SessionSessionIdLayoutRouteWithChildren,
+}
+
+const SessionSessionIdRouteWithChildren =
+  SessionSessionIdRoute._addFileChildren(SessionSessionIdRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '': typeof LayoutLayout2RouteWithChildren
@@ -193,6 +266,8 @@ export interface FileRoutesByFullPath {
   '/posts/': typeof PostsIndexRoute
   '/layout-a': typeof LayoutLayout2LayoutARoute
   '/layout-b': typeof LayoutLayout2LayoutBRoute
+  '/session/$sessionId': typeof SessionSessionIdLayoutRouteWithChildren
+  '/session/$sessionId/logs': typeof SessionSessionIdLayoutLogsRoute
 }
 
 export interface FileRoutesByTo {
@@ -203,6 +278,8 @@ export interface FileRoutesByTo {
   '/posts': typeof PostsIndexRoute
   '/layout-a': typeof LayoutLayout2LayoutARoute
   '/layout-b': typeof LayoutLayout2LayoutBRoute
+  '/session/$sessionId': typeof SessionSessionIdLayoutRouteWithChildren
+  '/session/$sessionId/logs': typeof SessionSessionIdLayoutLogsRoute
 }
 
 export interface FileRoutesById {
@@ -216,6 +293,9 @@ export interface FileRoutesById {
   '/posts/': typeof PostsIndexRoute
   '/_layout/_layout-2/layout-a': typeof LayoutLayout2LayoutARoute
   '/_layout/_layout-2/layout-b': typeof LayoutLayout2LayoutBRoute
+  '/session/$sessionId': typeof SessionSessionIdRouteWithChildren
+  '/session/$sessionId/_layout': typeof SessionSessionIdLayoutRouteWithChildren
+  '/session/$sessionId/_layout/logs': typeof SessionSessionIdLayoutLogsRoute
 }
 
 export interface FileRouteTypes {
@@ -229,6 +309,8 @@ export interface FileRouteTypes {
     | '/posts/'
     | '/layout-a'
     | '/layout-b'
+    | '/session/$sessionId'
+    | '/session/$sessionId/logs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -238,6 +320,8 @@ export interface FileRouteTypes {
     | '/posts'
     | '/layout-a'
     | '/layout-b'
+    | '/session/$sessionId'
+    | '/session/$sessionId/logs'
   id:
     | '__root__'
     | '/'
@@ -249,6 +333,9 @@ export interface FileRouteTypes {
     | '/posts/'
     | '/_layout/_layout-2/layout-a'
     | '/_layout/_layout-2/layout-b'
+    | '/session/$sessionId'
+    | '/session/$sessionId/_layout'
+    | '/session/$sessionId/_layout/logs'
   fileRoutesById: FileRoutesById
 }
 
@@ -257,6 +344,7 @@ export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   AnchorRoute: typeof AnchorRoute
   PostsRoute: typeof PostsRouteWithChildren
+  SessionSessionIdRoute: typeof SessionSessionIdRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -264,6 +352,7 @@ const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   AnchorRoute: AnchorRoute,
   PostsRoute: PostsRouteWithChildren,
+  SessionSessionIdRoute: SessionSessionIdRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -279,7 +368,8 @@ export const routeTree = rootRoute
         "/",
         "/_layout",
         "/anchor",
-        "/posts"
+        "/posts",
+        "/session/$sessionId"
       ]
     },
     "/": {
@@ -324,6 +414,23 @@ export const routeTree = rootRoute
     "/_layout/_layout-2/layout-b": {
       "filePath": "_layout/_layout-2/layout-b.tsx",
       "parent": "/_layout/_layout-2"
+    },
+    "/session/$sessionId": {
+      "filePath": "session/$sessionId",
+      "children": [
+        "/session/$sessionId/_layout"
+      ]
+    },
+    "/session/$sessionId/_layout": {
+      "filePath": "session/$sessionId/_layout.tsx",
+      "parent": "/session/$sessionId",
+      "children": [
+        "/session/$sessionId/_layout/logs"
+      ]
+    },
+    "/session/$sessionId/_layout/logs": {
+      "filePath": "session/$sessionId/_layout/logs.tsx",
+      "parent": "/session/$sessionId/_layout"
     }
   }
 }
