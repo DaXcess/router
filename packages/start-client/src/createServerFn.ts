@@ -35,6 +35,7 @@ export type CompiledFetcherFnOptions = {
   method: Method
   data: unknown
   headers?: HeadersInit
+  signal?: AbortSignal
   context?: any
 }
 
@@ -50,6 +51,7 @@ export interface FetcherBase {
     data: unknown
     headers?: HeadersInit
     context?: any
+    signal: AbortSignal
   }) => Promise<unknown>
 }
 
@@ -82,6 +84,7 @@ export interface RequiredFetcher<TMiddlewares, TValidator, TResponse>
 export type FetcherBaseOptions<TFullResponse extends boolean = false> = {
   headers?: HeadersInit
   type?: ServerFnType
+  signal?: AbortSignal
   fullResponse?: TFullResponse
 }
 
@@ -128,6 +131,7 @@ export interface ServerFnCtx<TMethod, TMiddlewares, TValidator> {
   method: TMethod
   data: Expand<IntersectAllValidatorOutputs<TMiddlewares, TValidator>>
   context: Expand<AssignAllServerContext<TMiddlewares>>
+  signal: AbortSignal
 }
 
 export type CompiledFetcherFn<TResponse> = {
@@ -451,6 +455,7 @@ export function createServerFn<
             ...resolvedOptions,
             data: opts?.data as any,
             headers: opts?.headers,
+            signal: opts?.signal,
             context: {},
           }).then((d) => {
             if (d.error) throw d.error
@@ -462,7 +467,7 @@ export function createServerFn<
           ...extractedFn,
           // The extracted function on the server-side calls
           // this function
-          __executeServer: async (opts_: any) => {
+          __executeServer: async (opts_: any, signal: AbortSignal) => {
             const opts =
               opts_ instanceof FormData ? extractFormDataContext(opts_) : opts_
 
@@ -474,6 +479,7 @@ export function createServerFn<
             const ctx = {
               ...extractedFn,
               ...opts,
+              signal,
             }
 
             const run = () =>
@@ -588,6 +594,7 @@ export type MiddlewareOptions = {
   method: Method
   data: any
   headers?: HeadersInit
+  signal?: AbortSignal
   sendContext?: any
   context?: any
   type: ServerFnTypeOrTypeFn<any, any, any>
@@ -699,27 +706,6 @@ async function executeMiddleware(
     if (middlewareFn) {
       // Execute the middleware
       return applyMiddleware(middlewareFn, ctx, async (newCtx) => {
-        // If there is a clientAfter function and we are on the client
-        const clientAfter = nextMiddleware.options.clientAfter as
-          | MiddlewareFn
-          | undefined
-
-        if (env === 'client' && clientAfter) {
-          // We need to await the next middleware and get the result
-          const result = await next(newCtx)
-
-          // Then we can execute the clientAfter function
-          return applyMiddleware(
-            clientAfter,
-            {
-              ...newCtx,
-              ...result,
-            },
-            // Identity, because there "next" is just returning
-            (d: any) => d,
-          )
-        }
-
         return next(newCtx).catch((error) => {
           if (isRedirect(error) || isNotFound(error)) {
             return {

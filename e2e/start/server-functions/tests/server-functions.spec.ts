@@ -1,7 +1,9 @@
+import * as fs from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { PORT } from '../playwright.config'
+import type { Page } from '@playwright/test'
 
-test.only('invoking a server function with custom response status code', async ({
+test('invoking a server function with custom response status code', async ({
   page,
 }) => {
   await page.goto('/status')
@@ -235,4 +237,87 @@ test('Direct POST submitting FormData to a Server function returns the correct m
 
   const result = await page.innerText('body')
   expect(result).toBe(expected)
+})
+
+test("server function's dead code is preserved if already there", async ({
+  page,
+}) => {
+  await page.goto('/dead-code-preserve')
+
+  await page.waitForLoadState('networkidle')
+  await page.getByTestId('test-dead-code-fn-call-btn').click()
+  await page.waitForLoadState('networkidle')
+
+  await expect(page.getByTestId('dead-code-fn-call-response')).toContainText(
+    '1',
+  )
+
+  await fs.promises.rm('count-effect.txt')
+})
+
+test.describe('server function sets cookies', () => {
+  async function runCookieTest(page: Page, expectedCookieValue: string) {
+    for (let i = 1; i <= 4; i++) {
+      const key = `cookie-${i}-${expectedCookieValue}`
+
+      const actualValue = await page.getByTestId(key).textContent()
+      expect(actualValue).toBe(expectedCookieValue)
+    }
+  }
+  test('SSR', async ({ page }) => {
+    const expectedCookieValue = `SSR-${Date.now()}`
+    await page.goto(`/cookies/set?value=${expectedCookieValue}`)
+    await runCookieTest(page, expectedCookieValue)
+  })
+
+  test('client side navigation', async ({ page }) => {
+    const expectedCookieValue = `CLIENT-${Date.now()}`
+    await page.goto(`/cookies?value=${expectedCookieValue}`)
+    await page.getByTestId('link-to-set').click()
+    await runCookieTest(page, expectedCookieValue)
+  })
+})
+
+test.describe('aborting a server function call', () => {
+  test('without aborting', async ({ page }) => {
+    await page.goto('/abort-signal')
+
+    await page.waitForLoadState('networkidle')
+
+    await page.getByTestId('run-without-abort-btn').click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector(
+      '[data-testid="result"]:has-text("server function result")',
+    )
+    await page.waitForSelector(
+      '[data-testid="errorMessage"]:has-text("$undefined")',
+    )
+
+    const result = (await page.getByTestId('result').textContent()) || ''
+    expect(result).toBe('server function result')
+
+    const errorMessage =
+      (await page.getByTestId('errorMessage').textContent()) || ''
+    expect(errorMessage).toBe('$undefined')
+  })
+
+  test('aborting', async ({ page }) => {
+    await page.goto('/abort-signal')
+
+    await page.waitForLoadState('networkidle')
+
+    await page.getByTestId('run-with-abort-btn').click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('[data-testid="result"]:has-text("$undefined")')
+    await page.waitForSelector(
+      '[data-testid="errorMessage"]:has-text("aborted")',
+    )
+
+    const result = (await page.getByTestId('result').textContent()) || ''
+    expect(result).toBe('$undefined')
+
+    const errorMessage =
+      (await page.getByTestId('errorMessage').textContent()) || ''
+    expect(errorMessage).toContain('abort')
+  })
 })

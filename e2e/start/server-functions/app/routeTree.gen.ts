@@ -19,8 +19,12 @@ import { Route as MultipartImport } from './routes/multipart'
 import { Route as IsomorphicFnsImport } from './routes/isomorphic-fns'
 import { Route as HeadersImport } from './routes/headers'
 import { Route as EnvOnlyImport } from './routes/env-only'
+import { Route as DeadCodePreserveImport } from './routes/dead-code-preserve'
 import { Route as ConsistentImport } from './routes/consistent'
+import { Route as AbortSignalImport } from './routes/abort-signal'
 import { Route as IndexImport } from './routes/index'
+import { Route as CookiesIndexImport } from './routes/cookies/index'
+import { Route as CookiesSetImport } from './routes/cookies/set'
 
 // Create/Update Routes
 
@@ -72,15 +76,39 @@ const EnvOnlyRoute = EnvOnlyImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const DeadCodePreserveRoute = DeadCodePreserveImport.update({
+  id: '/dead-code-preserve',
+  path: '/dead-code-preserve',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ConsistentRoute = ConsistentImport.update({
   id: '/consistent',
   path: '/consistent',
   getParentRoute: () => rootRoute,
 } as any)
 
+const AbortSignalRoute = AbortSignalImport.update({
+  id: '/abort-signal',
+  path: '/abort-signal',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CookiesIndexRoute = CookiesIndexImport.update({
+  id: '/cookies/',
+  path: '/cookies/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CookiesSetRoute = CookiesSetImport.update({
+  id: '/cookies/set',
+  path: '/cookies/set',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,11 +123,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/abort-signal': {
+      id: '/abort-signal'
+      path: '/abort-signal'
+      fullPath: '/abort-signal'
+      preLoaderRoute: typeof AbortSignalImport
+      parentRoute: typeof rootRoute
+    }
     '/consistent': {
       id: '/consistent'
       path: '/consistent'
       fullPath: '/consistent'
       preLoaderRoute: typeof ConsistentImport
+      parentRoute: typeof rootRoute
+    }
+    '/dead-code-preserve': {
+      id: '/dead-code-preserve'
+      path: '/dead-code-preserve'
+      fullPath: '/dead-code-preserve'
+      preLoaderRoute: typeof DeadCodePreserveImport
       parentRoute: typeof rootRoute
     }
     '/env-only': {
@@ -158,6 +200,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubmitPostFormdataImport
       parentRoute: typeof rootRoute
     }
+    '/cookies/set': {
+      id: '/cookies/set'
+      path: '/cookies/set'
+      fullPath: '/cookies/set'
+      preLoaderRoute: typeof CookiesSetImport
+      parentRoute: typeof rootRoute
+    }
+    '/cookies/': {
+      id: '/cookies/'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -165,7 +221,9 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/abort-signal': typeof AbortSignalRoute
   '/consistent': typeof ConsistentRoute
+  '/dead-code-preserve': typeof DeadCodePreserveRoute
   '/env-only': typeof EnvOnlyRoute
   '/headers': typeof HeadersRoute
   '/isomorphic-fns': typeof IsomorphicFnsRoute
@@ -174,11 +232,15 @@ export interface FileRoutesByFullPath {
   '/serialize-form-data': typeof SerializeFormDataRoute
   '/status': typeof StatusRoute
   '/submit-post-formdata': typeof SubmitPostFormdataRoute
+  '/cookies/set': typeof CookiesSetRoute
+  '/cookies': typeof CookiesIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/abort-signal': typeof AbortSignalRoute
   '/consistent': typeof ConsistentRoute
+  '/dead-code-preserve': typeof DeadCodePreserveRoute
   '/env-only': typeof EnvOnlyRoute
   '/headers': typeof HeadersRoute
   '/isomorphic-fns': typeof IsomorphicFnsRoute
@@ -187,12 +249,16 @@ export interface FileRoutesByTo {
   '/serialize-form-data': typeof SerializeFormDataRoute
   '/status': typeof StatusRoute
   '/submit-post-formdata': typeof SubmitPostFormdataRoute
+  '/cookies/set': typeof CookiesSetRoute
+  '/cookies': typeof CookiesIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/abort-signal': typeof AbortSignalRoute
   '/consistent': typeof ConsistentRoute
+  '/dead-code-preserve': typeof DeadCodePreserveRoute
   '/env-only': typeof EnvOnlyRoute
   '/headers': typeof HeadersRoute
   '/isomorphic-fns': typeof IsomorphicFnsRoute
@@ -201,13 +267,17 @@ export interface FileRoutesById {
   '/serialize-form-data': typeof SerializeFormDataRoute
   '/status': typeof StatusRoute
   '/submit-post-formdata': typeof SubmitPostFormdataRoute
+  '/cookies/set': typeof CookiesSetRoute
+  '/cookies/': typeof CookiesIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/abort-signal'
     | '/consistent'
+    | '/dead-code-preserve'
     | '/env-only'
     | '/headers'
     | '/isomorphic-fns'
@@ -216,10 +286,14 @@ export interface FileRouteTypes {
     | '/serialize-form-data'
     | '/status'
     | '/submit-post-formdata'
+    | '/cookies/set'
+    | '/cookies'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/abort-signal'
     | '/consistent'
+    | '/dead-code-preserve'
     | '/env-only'
     | '/headers'
     | '/isomorphic-fns'
@@ -228,10 +302,14 @@ export interface FileRouteTypes {
     | '/serialize-form-data'
     | '/status'
     | '/submit-post-formdata'
+    | '/cookies/set'
+    | '/cookies'
   id:
     | '__root__'
     | '/'
+    | '/abort-signal'
     | '/consistent'
+    | '/dead-code-preserve'
     | '/env-only'
     | '/headers'
     | '/isomorphic-fns'
@@ -240,12 +318,16 @@ export interface FileRouteTypes {
     | '/serialize-form-data'
     | '/status'
     | '/submit-post-formdata'
+    | '/cookies/set'
+    | '/cookies/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AbortSignalRoute: typeof AbortSignalRoute
   ConsistentRoute: typeof ConsistentRoute
+  DeadCodePreserveRoute: typeof DeadCodePreserveRoute
   EnvOnlyRoute: typeof EnvOnlyRoute
   HeadersRoute: typeof HeadersRoute
   IsomorphicFnsRoute: typeof IsomorphicFnsRoute
@@ -254,11 +336,15 @@ export interface RootRouteChildren {
   SerializeFormDataRoute: typeof SerializeFormDataRoute
   StatusRoute: typeof StatusRoute
   SubmitPostFormdataRoute: typeof SubmitPostFormdataRoute
+  CookiesSetRoute: typeof CookiesSetRoute
+  CookiesIndexRoute: typeof CookiesIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AbortSignalRoute: AbortSignalRoute,
   ConsistentRoute: ConsistentRoute,
+  DeadCodePreserveRoute: DeadCodePreserveRoute,
   EnvOnlyRoute: EnvOnlyRoute,
   HeadersRoute: HeadersRoute,
   IsomorphicFnsRoute: IsomorphicFnsRoute,
@@ -267,6 +353,8 @@ const rootRouteChildren: RootRouteChildren = {
   SerializeFormDataRoute: SerializeFormDataRoute,
   StatusRoute: StatusRoute,
   SubmitPostFormdataRoute: SubmitPostFormdataRoute,
+  CookiesSetRoute: CookiesSetRoute,
+  CookiesIndexRoute: CookiesIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -280,7 +368,9 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/abort-signal",
         "/consistent",
+        "/dead-code-preserve",
         "/env-only",
         "/headers",
         "/isomorphic-fns",
@@ -288,14 +378,22 @@ export const routeTree = rootRoute
         "/return-null",
         "/serialize-form-data",
         "/status",
-        "/submit-post-formdata"
+        "/submit-post-formdata",
+        "/cookies/set",
+        "/cookies/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
+    "/abort-signal": {
+      "filePath": "abort-signal.tsx"
+    },
     "/consistent": {
       "filePath": "consistent.tsx"
+    },
+    "/dead-code-preserve": {
+      "filePath": "dead-code-preserve.tsx"
     },
     "/env-only": {
       "filePath": "env-only.tsx"
@@ -320,6 +418,12 @@ export const routeTree = rootRoute
     },
     "/submit-post-formdata": {
       "filePath": "submit-post-formdata.tsx"
+    },
+    "/cookies/set": {
+      "filePath": "cookies/set.tsx"
+    },
+    "/cookies/": {
+      "filePath": "cookies/index.tsx"
     }
   }
 }
